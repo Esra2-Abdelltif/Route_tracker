@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:route_tracker/utils/service/location_service.dart';
+import 'package:route_tracker/views/widgets/custom_text_field.dart';
 
 
 class GoogleMapView extends StatefulWidget {
@@ -15,24 +16,49 @@ class _GoogleMapViewState extends State<GoogleMapView> {
   late LocationService locationService;
   late CameraPosition cameraPosition;
   late GoogleMapController googleMapController;
+  late TextEditingController textEditingController;
   Set<Marker> markers = {};
   @override
   void initState() {
     cameraPosition=const CameraPosition(target: LatLng(0,0),);
     locationService=LocationService();
+    textEditingController = TextEditingController();
+
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    textEditingController.dispose();
+    super.dispose();
   }
   @override
   Widget build(BuildContext context) {
-    return GoogleMap(
-      markers:markers,
-      zoomControlsEnabled: false,
-      mapType: MapType.hybrid,
-      initialCameraPosition: cameraPosition,
-      onMapCreated: (GoogleMapController controller) {
-        googleMapController=controller;
-        updateCurrentLocation();
-      },
+    return Stack(
+      children: [
+        GoogleMap(
+          markers:markers,
+          zoomControlsEnabled: false,
+          mapType: MapType.hybrid,
+          initialCameraPosition: cameraPosition,
+          onMapCreated: (GoogleMapController controller) {
+            googleMapController=controller;
+            updateCurrentLocation();
+          },
+        ),
+        Positioned(
+            top: 16,
+            left: 16,
+            right: 16,
+            child: Column(
+            children: [
+            CustomTextField(
+            textEditingController: textEditingController,
+        ),
+        const SizedBox(
+          height: 16,
+        ),
+      ],))]
     );
   }
 
@@ -59,4 +85,9 @@ class _GoogleMapViewState extends State<GoogleMapView> {
       // TODO:
     }
   }
+
+  //Create Text Form Field
+  //Listen To Text Field
+  //Search Places
+  //Display Results
 }
