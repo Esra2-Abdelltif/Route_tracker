@@ -23,7 +23,9 @@ class _GoogleMapViewState extends State<GoogleMapView> {
     cameraPosition=const CameraPosition(target: LatLng(0,0),);
     locationService=LocationService();
     textEditingController = TextEditingController();
-
+    textEditingController.addListener((){
+      print(textEditingController.text);
+    });
     super.initState();
   }
 
