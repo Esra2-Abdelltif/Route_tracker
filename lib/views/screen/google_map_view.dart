@@ -5,7 +5,7 @@ import 'package:route_tracker/utils/service/google_maps_place_service.dart';
 import 'package:route_tracker/utils/service/location_service.dart';
 import 'package:route_tracker/views/widgets/custom_list_view.dart';
 import 'package:route_tracker/views/widgets/custom_text_field.dart';
-
+import 'package:uuid/uuid.dart';
 class GoogleMapView extends StatefulWidget {
   const GoogleMapView({super.key});
 
@@ -19,6 +19,7 @@ class _GoogleMapViewState extends State<GoogleMapView> {
   late GoogleMapController googleMapController;
   late TextEditingController textEditingController;
   late GoogleMapsPlacesService googleMapsPlacesService;
+  late Uuid uuid;
   Set<Marker> markers = {};
   String? sesstionToken;
   List<PlaceModel> places = [];
@@ -26,6 +27,7 @@ class _GoogleMapViewState extends State<GoogleMapView> {
   @override
   void initState() {
     googleMapsPlacesService = GoogleMapsPlacesService();
+    uuid=const Uuid();
     cameraPosition = const CameraPosition(
       target: LatLng(0, 0),
     );
@@ -37,19 +39,20 @@ class _GoogleMapViewState extends State<GoogleMapView> {
 
   void fetchPredictions() {
     textEditingController.addListener(() async {
-      if (textEditingController.text.isNotEmpty) {
-        var result = await googleMapsPlacesService.getPredictions(
-            input: textEditingController.text);
+      sesstionToken ??= uuid.v4();
 
+      if (textEditingController.text.isNotEmpty) {
+        var result = await googleMapsPlacesService.getPredictions(input: textEditingController.text,sesstionToken: sesstionToken!);
         places.clear();
         places.addAll(result);
         setState(() {});
       } else {
+        sesstionToken=null;
         places.clear();
         setState(() {});
-
       }
     });
+
   }
 
   @override
@@ -60,6 +63,7 @@ class _GoogleMapViewState extends State<GoogleMapView> {
 
   @override
   Widget build(BuildContext context) {
+    print("3333333#####${sesstionToken}");
     return Stack(children: [
       GoogleMap(
         markers: markers,
@@ -79,14 +83,27 @@ class _GoogleMapViewState extends State<GoogleMapView> {
             children: [
               CustomTextField(
                 textEditingController: textEditingController,
+                onPlaceSelect: onPlaceSelect,
               ),
               const SizedBox(
                 height: 16,
               ),
-              CustomListView(places: places,)
+              CustomListView(
+                places: places,
+                googleMapsPlacesService: googleMapsPlacesService,
+                onPlaceSelect: (placeDetails){
+                  onPlaceSelect();
+                },
+              )
             ],
           ))
     ]);
+  }
+  void  onPlaceSelect(){
+      textEditingController.clear();
+      places.clear();
+      sesstionToken = null;
+      setState(() {});
   }
 
   void updateCurrentLocation() async {
@@ -96,7 +113,7 @@ class _GoogleMapViewState extends State<GoogleMapView> {
       Marker currentLocationMarker = Marker(
           markerId: const MarkerId("my location"), position: currentPosition);
       CameraPosition cameraPosition =
-          CameraPosition(target: currentPosition, zoom: 100);
+          CameraPosition(target: currentPosition, zoom: 20);
       googleMapController
           .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
       markers.add(currentLocationMarker);
