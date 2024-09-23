@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:route_tracker/model/place_details_model/place_details_model.dart';
 
 class CustomTextField extends StatelessWidget {
   const CustomTextField({
