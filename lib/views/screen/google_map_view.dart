@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:route_tracker/model/location_info/lat_lng.dart';
@@ -33,7 +35,7 @@ class _GoogleMapViewState extends State<GoogleMapView> {
   late LatLng currentLocationPosition;
   late RoutesService routesService;
   late LatLng desintation;
-
+  Set<Polyline> polyLines = {};
   @override
   void initState() {
     routesService = RoutesService();
@@ -76,6 +78,7 @@ class _GoogleMapViewState extends State<GoogleMapView> {
   Widget build(BuildContext context) {
     return Stack(children: [
       GoogleMap(
+        polylines: polyLines,
         markers: markers,
         zoomControlsEnabled: false,
         mapType: MapType.hybrid,
@@ -101,12 +104,14 @@ class _GoogleMapViewState extends State<GoogleMapView> {
               CustomListView(
                 places: places,
                 googleMapsPlacesService: googleMapsPlacesService,
-                onPlaceSelect: (placeDetailsModel) {
+                onPlaceSelect: (placeDetailsModel) async{
                   onPlaceSelect();
                   desintation = LatLng(
                       placeDetailsModel.geometry!.location!.lat!,
                       placeDetailsModel.geometry!.location!.lng!);
-                  getRouteData();
+                  var points = await   getRouteData();
+                  displayRoute(points, polyLines: polyLines, googleMapController: googleMapController);
+                  setState(() {});
                 },
               )
             ],
@@ -155,6 +160,36 @@ class _GoogleMapViewState extends State<GoogleMapView> {
     return points;
   }
 
+  void displayRoute(List<LatLng> points, {required Set<Polyline> polyLines, required GoogleMapController googleMapController}) {
+    Polyline route = Polyline(
+      color: Colors.blue,
+      width: 5,
+      polylineId: const PolylineId('route'),
+      points: points,
+    );
+
+    polyLines.add(route);
+
+    LatLngBounds bounds = getLatLngBounds(points);
+     googleMapController.animateCamera(CameraUpdate.newLatLngBounds(bounds, 32));
+  }
+  LatLngBounds getLatLngBounds(List<LatLng> points) {
+    var southWestLatitude = points.first.latitude;
+    var southWestLongitude = points.first.longitude;
+    var northEastLatitude = points.first.latitude;
+    var northEastLongitude = points.first.longitude;
+
+    for (var point in points) {
+      southWestLatitude = min(southWestLatitude, point.latitude);
+      southWestLongitude = min(southWestLongitude, point.longitude);
+      northEastLatitude = max(northEastLatitude, point.latitude);
+      northEastLongitude = max(northEastLongitude, point.longitude);
+    }
+
+    return LatLngBounds(
+        southwest: LatLng(southWestLatitude, southWestLongitude),
+        northeast: LatLng(northEastLatitude, northEastLongitude));
+  }
 //Create Text Form Field
 //Listen To Text Field
 //Search Places
