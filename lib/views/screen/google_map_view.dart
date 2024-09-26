@@ -4,7 +4,6 @@ import 'package:route_tracker/model/location_info/lat_lng.dart';
 import 'package:route_tracker/model/location_info/location.dart';
 import 'package:route_tracker/model/location_info/location_info.dart';
 import 'package:route_tracker/model/place_autocomplete_model/place_autocomplete_model.dart';
-import 'package:route_tracker/model/routes_model/route.dart';
 import 'package:route_tracker/model/routes_model/routes_model.dart';
 import 'package:route_tracker/utils/service/google_maps_place_service.dart';
 import 'package:route_tracker/utils/service/location_service.dart';
@@ -12,6 +11,7 @@ import 'package:route_tracker/utils/service/routes_service.dart';
 import 'package:route_tracker/views/widgets/custom_list_view.dart';
 import 'package:route_tracker/views/widgets/custom_text_field.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
 class GoogleMapView extends StatefulWidget {
   const GoogleMapView({super.key});
@@ -143,12 +143,16 @@ class _GoogleMapViewState extends State<GoogleMapView> {
     }
   }
 
-  Future<RouteModel> getRouteData() async{
+  Future<List<LatLng>> getRouteData() async{
     LocationInfoModel origin = LocationInfoModel(location: LocationModel(latLng: LatLngModel(latitude:currentLocationPosition.latitude,longitude:currentLocationPosition.longitude )));
     LocationInfoModel destination = LocationInfoModel(location: LocationModel(latLng: LatLngModel(latitude:desintation.latitude,longitude:desintation.longitude )));
-
+    PolylinePoints polylinePoints = PolylinePoints();
     RoutesModel route =await routesService.fetchRoutes(origin: origin, destination: destination);
-    return route.routes!.first;
+    List<PointLatLng> result = polylinePoints.decodePolyline(route.routes!.first.polyline!.encodedPolyline!);
+    print(result);
+    List<LatLng> points =
+    result.map((e) => LatLng(e.latitude, e.longitude)).toList();
+    return points;
   }
 
 //Create Text Form Field
