@@ -8,6 +8,7 @@ import 'package:route_tracker/model/location_info/location.dart';
 import 'package:route_tracker/model/location_info/location_info.dart';
 import 'package:route_tracker/model/place_autocomplete_model/place_autocomplete_model.dart';
 import 'package:route_tracker/model/place_details_model/place_details_model.dart';
+import 'package:route_tracker/model/routes_model/route.dart';
 import 'package:route_tracker/model/routes_model/routes_model.dart';
 import 'package:route_tracker/utils/service/google_maps_place_service.dart';
 import 'package:route_tracker/utils/service/location_service.dart';
@@ -50,47 +51,24 @@ class MapServices {
     return routes;
   }
 
-  Future<List<LatLng>> getRouteData({required LatLng desintation,}) async {
+  Future<List<LatLng>> getRouteData({required LatLng desintation,required  List<RouteModel> routes }) async {
 
-    LocationInfoModel origin = LocationInfoModel(
-      location: LocationModel(
-          latLng: LatLngModel(
-            latitude: currentLocation!.latitude,
-            longitude: currentLocation!.longitude,
-          )),
-    );
-    LocationInfoModel destination = LocationInfoModel(
-      location: LocationModel(
-          latLng: LatLngModel(
-            latitude: desintation.latitude,
-            longitude: desintation.longitude,
-          )),
-    );
-    RoutesModel routes = await routesService.fetchRoutes(origin: origin, destination: destination);
     PolylinePoints polylinePoints = PolylinePoints();
     List<LatLng> points = getDecodedRoute(polylinePoints, routes,);
     return points;
   }
 
-  List<LatLng> getDecodedRoute(PolylinePoints polylinePoints, RoutesModel routes,) {
+  List<LatLng> getDecodedRoute(PolylinePoints polylinePoints, List<RouteModel> routes,) {
     List<PointLatLng> result = polylinePoints.decodePolyline(
-      routes.routes!.first.polyline!.encodedPolyline!,
+      routes.first.polyline!.encodedPolyline!,
     );
-    print("----------------------");
-    print("Distance ${routes.routes!.first.distanceMeters}");
-    print("Distance ${routes.routes!.first.duration}");
-
-
-    List<LatLng> points =
-    result.map((e) => LatLng(e.latitude, e.longitude)).toList();
+   List<LatLng> points = result.map((e) => LatLng(e.latitude, e.longitude)).toList();
     return points;
   }
 
-  void displayRoute(List<LatLng> points,
-      {required Set<Polyline> polyLines,
-        required GoogleMapController googleMapController}) {
+  void displayRoute(List<LatLng> points, {required Set<Polyline> polyLines, required GoogleMapController googleMapController}) {
     Polyline route = Polyline(
-      color: Colors.blue,
+      color: Colors.green,
       width: 5,
       polylineId: const PolylineId('route'),
       points: points,
@@ -123,22 +101,31 @@ class MapServices {
   void updateCurrentLocation(
       {required GoogleMapController googleMapController,
         required Set<Marker> markers,
+        required Function onUpdatecurrentLocation}) async{
+    var location = await locationService.getLocation();
+    currentLocation = LatLng(location.latitude!, location.longitude!);
+    Marker currentLocationMarker = Marker(
+        markerId: const MarkerId("my location"),
+        position: currentLocation!);
+    CameraPosition cameraPosition =
+    CameraPosition(target: currentLocation!, zoom: 20);
+    googleMapController.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+    markers.add(currentLocationMarker);
+    onUpdatecurrentLocation();
+  }
+
+  void updateRealTimeCurrentLocation(
+      {required GoogleMapController googleMapController,
         required Function onUpdatecurrentLocation}) {
     locationService.getRealTimeLocationData((locationData) {
       currentLocation = LatLng(locationData.latitude!, locationData.longitude!);
 
-      Marker currentLocationMarker = Marker(
-        markerId: const MarkerId('my location'),
-        position: currentLocation!,
-      );
       CameraPosition myCurrentCameraPoistion = CameraPosition(
         target: currentLocation!,
-        zoom: 17,
+        zoom: 20,
       );
-      googleMapController.animateCamera(
-          CameraUpdate.newCameraPosition(myCurrentCameraPoistion));
-      markers.add(currentLocationMarker);
-      onUpdatecurrentLocation();
+      googleMapController.animateCamera(CameraUpdate.newCameraPosition(myCurrentCameraPoistion));
+       onUpdatecurrentLocation();
     });
   }
 

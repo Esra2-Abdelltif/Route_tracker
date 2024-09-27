@@ -7,6 +7,7 @@ import 'package:route_tracker/utils/service/location_service.dart';
 import 'package:route_tracker/utils/service/map_services.dart';
 import 'package:route_tracker/views/widgets/custom_list_view.dart';
 import 'package:route_tracker/views/widgets/custom_text_field.dart';
+import 'package:route_tracker/views/widgets/floating_action_button_widget.dart';
 import 'package:route_tracker/views/widgets/route_details_info_widget.dart';
 import 'package:uuid/uuid.dart';
 
@@ -24,11 +25,10 @@ class _GoogleMapViewState extends State<GoogleMapView> {
   late TextEditingController textEditingController;
   late Uuid uuid;
   String? sesstionToken;
+
   Set<Marker> markers = {};
   Set<Polyline> polyLines = {};
   List<PlaceModel> places = [];
-  int? distanceMeters;
-  String? duration;
 
   late LatLng desintation;
   Timer? debounce;
@@ -37,9 +37,9 @@ class _GoogleMapViewState extends State<GoogleMapView> {
 
   @override
   void initState() {
+    uuid = const Uuid();
     mapServices = MapServices();
     routesModel = RoutesModel();
-    uuid = const Uuid();
     cameraPosition = const CameraPosition(
       target: LatLng(0, 0),
     );
@@ -109,12 +109,13 @@ class _GoogleMapViewState extends State<GoogleMapView> {
                       desintation = LatLng(
                           placeDetailsModel.geometry!.location!.lat!,
                           placeDetailsModel.geometry!.location!.lng!);
-                      var points = await mapServices.getRouteData(
-                        desintation: desintation,
-                      );
                       routesModel = await mapServices.geRouteDataInfo(
                         desintation: desintation,
                       );
+                      var points = await mapServices.getRouteData(
+                          desintation: desintation,
+                          routes: routesModel.routes!);
+
                       mapServices.displayRoute(points,
                           polyLines: polyLines,
                           googleMapController: googleMapController);
@@ -131,7 +132,24 @@ class _GoogleMapViewState extends State<GoogleMapView> {
           : RouteDetailsInfoWidget(
               duration: routesModel.routes!.first.duration!,
               distanceMeters: routesModel.routes!.first.distanceMeters!,
+              cancelRouteFun: () {
+                polyLines = {};
+                routesModel.routes = null;
+                setState(() {});
+                updateCurrentLocation();
+              },
+              startRouteFun: () {
+                updateCurrentLocation();
+                setState(() {});
+              },
             ),
+      floatingActionButton: routesModel.routes == null
+          ? FloatingActionButtonWidget(
+              getCurrentLocationFun: () {
+                updateCurrentLocation();
+              },
+            )
+          : null,
     );
   }
 
@@ -159,10 +177,8 @@ class _GoogleMapViewState extends State<GoogleMapView> {
       // TODO:
     }
   }
-
-
+}
 //Create Text Form Field
 //Listen To Text Field
 //Search Places
 //Display Results
-}
