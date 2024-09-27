@@ -4,10 +4,10 @@ Simple App to Show Current Location on Google Map and Treacking Between Two plac
 
 # 🌟 App Features 🌟
  - 📍 Add Dependency: Add google_maps_flutter to pubspec.yaml.
-📍 - Setup API Key: Obtain and configure Google Maps API key.
-📍 - Initialize Map: Create GoogleMap widget with initial parameters.
-📍 -Set Markers: Add Marker widgets for specific locations.
-📍 - Draw Polylines: Use Polyline widgets to display routes.
+ - 📍 Setup API Key: Obtain and configure Google Maps API key.
+ - 📍 Initialize Map: Create GoogleMap widget with initial parameters.
+ - 📍 Set Markers: Add Marker widgets for specific locations.
+ - 📍 Draw Polylines: Use Polyline widgets to display routes.
 📍 Handle Interactions: Implement onTap for markers, onCameraMove, etc.
 📍 Add Controls: Customize map controls like zoom, compass, overlays.
 📍 Handle Permissions: Ensure necessary location permissions.
