@@ -3,7 +3,7 @@ Simple App to Show Current Location on Google Map and Treacking Between Two plac
 
 
 # 🌟 App Features 🌟
-📍 - Add Dependency: Add google_maps_flutter to pubspec.yaml.
+ - 📍 Add Dependency: Add google_maps_flutter to pubspec.yaml.
 📍 - Setup API Key: Obtain and configure Google Maps API key.
 📍 - Initialize Map: Create GoogleMap widget with initial parameters.
 📍 -Set Markers: Add Marker widgets for specific locations.
